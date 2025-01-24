@@ -1,78 +1,127 @@
 import java.util.Scanner;
-public class JGrades{
-	public static void main(String[]args){
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-		
-		 Scanner keyboard = new Scanner(System.in);
-
-		 
-		 	/* Math */
-			System.out.println("Enter your grades in Math");
-	        System.out.println("What is your WW & E score? ");
-	        double mathwwe = Integer.parseInt(keyboard.nextLine());
-	        double mathwwe1 = (((mathwwe / 150) * 100 * 0.50) + 50);
-	        double mathwwe2 = Math.round(mathwwe1 * 100.0) / 100.0;
-	        System.out.println("What is your PT score? ");
-	        double mathpt = Integer.parseInt(keyboard.nextLine());
-	        double mathpt1 = (((mathpt / 200) * 100 * 0.50) + 50);
-	        double mathpt2 = Math.round(mathpt1 * 100.0) / 100.0;
-	        double math = Math.round(((mathwwe2 + mathpt2)/2) * 100.0 / 100.0);
-	        System.out.println("Your grade in Math is: " + math);
-	        
-	        System.out.println("");
-	        
-	        /* Filipino */
-	        System.out.println("Enter your grades in Filipino");
-	        System.out.println("What is your WW & E score? ");
-	        double filwwe = Integer.parseInt(keyboard.nextLine());
-	        double filwwe1 = (((filwwe / 150) * 100 * 0.50) + 50);
-	        double filwwe2 = Math.round(filwwe1 * 100.0) / 100.0;
-	        System.out.println("What is your PT score? ");
-	        double filpt = Integer.parseInt(keyboard.nextLine());
-	        double filpt1 = (((filpt / 200) * 100 * 0.50) + 50);
-	        double filpt2 = Math.round(filpt1 * 100.0) / 100.0;
-	        double fil = Math.round(((filwwe2 + filpt2)/2) * 100.0 / 100.0);
-	       
-	        System.out.println("Your grade in Filipino is: " + fil);
-	        
-	        /* Filipino */
-	        System.out.println("Enter your grades in English");
-	        System.out.println("What is your WW & E score? ");
-	        double engwwe = Integer.parseInt(keyboard.nextLine());
-	        double engwwe1 = (((engwwe / 150) * 100 * 0.50) + 50);
-	        double engwwe2 = Math.round(engwwe1 * 100.0) / 100.0;
-	        System.out.println("What is your PT score? ");
-	        double engpt = Integer.parseInt(keyboard.nextLine());
-	        double engpt1 = (((engpt / 200) * 100 * 0.50) + 50);
-	        double engpt2 = Math.round(engpt1 * 100.0) / 100.0;
-	        double eng = Math.round(((engwwe2 + engpt2)/2) * 100.0 / 100.0);
-	       
-	        System.out.println("Your grade in Filipino is: " + fil);
-	        System.out.println("");
-	        
-
-	        System.out.println("");
-	        System.out.println("");
-	        String namen = "Name:"; String namep = "Juan Dela Cruz";
-	        String sec = "Section:"; String secp = "ICT - C";
-	        String head1 = "Subject"; String head2 = "Grade"; 
-	        String head3 = "WW & E Score"; String head4 = "PT Score";
-	        String div = "+-------------+--------------+----------+-------+";
-	        String course1 = "Math"; String course2 = "Filipino";
-	        String course3 = "English"; String course4 = "History";
-	        String course5= "Programming";
-	        String eline = "|";
-	        String aver = "Average grade";
-	        System.out.printf("%1s %5s %n", namen, namep);
-	        System.out.printf("%1s %5s %n", sec, secp);
-	        System.out.println(div);
-	        System.out.printf("%1s %9s %3s %1s %1s %1s %1s %1s %1s %n", eline, head1, eline, head3, eline, head4, eline, head2, eline);
-	        System.out.println(div);
-	        System.out.printf("%1s %2s %7s %2s %2s %2s %2s %5s %2s %n", eline, course1, eline, mathwwe2, eline,  mathpt2, eline, math, eline);
-	        System.out.printf("%1s %2s %3s %2s %2s %2s %2s %2s %2s %n", eline, course2, eline, filwwe2, eline, filpt2, eline, fil, eline);
-	        System.out.printf("%1s %2s %3s %2s %2s %2s %2s %2s %2s %n", eline, course3, eline, engwwe2, eline,  engpt2, eline, eng, eline);
-	        System.out.println(div);
-	       
-	}
-	
+public class JGrades {
+    private static final int WWE_MAX_SCORE = 150;
+    private static final int PT_MAX_SCORE = 200;
+    private static final double WEIGHT_FACTOR = 0.50;
+    private static final double BASE_SCORE = 50.0;
+    
+    static class StudentInfo {
+        String name;
+        String section;
+        
+        StudentInfo(String name, String section) {
+            this.name = name;
+            this.section = section;
+        }
+    }
+    
+    static class SubjectGrades {
+        double wweScore;
+        double wweGrade;
+        double ptScore;
+        double ptGrade;
+        double finalGrade;
+        
+        SubjectGrades(double wweScore, double ptScore) {
+            this.wweScore = wweScore;
+            this.ptScore = ptScore;
+            calculateGrades();
+        }
+        
+        private void calculateGrades() {
+            wweGrade = roundToTwoDecimals(calculateComponentGrade(wweScore, WWE_MAX_SCORE));
+            ptGrade = roundToTwoDecimals(calculateComponentGrade(ptScore, PT_MAX_SCORE));
+            finalGrade = roundToTwoDecimals((wweGrade + ptGrade) / 2);
+        }
+    }
+    
+    public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            StudentInfo studentInfo = getStudentInfo(scanner);
+            Map<String, SubjectGrades> grades = collectGrades(scanner);
+            displayGradeReport(grades, studentInfo);
+        }
+    }
+    
+    private static StudentInfo getStudentInfo(Scanner scanner) {
+        System.out.println("Enter Student Information");
+        System.out.println("------------------------");
+        
+        System.out.print("Enter your name: ");
+        String name = scanner.nextLine().trim();
+        
+        System.out.print("Enter your section: ");
+        String section = scanner.nextLine().trim();
+        
+        System.out.println(); // Empty line for better formatting
+        return new StudentInfo(name, section);
+    }
+    
+    private static Map<String, SubjectGrades> collectGrades(Scanner scanner) {
+        Map<String, SubjectGrades> grades = new LinkedHashMap<>();
+        String[] subjects = {"Math", "Filipino", "English"};
+        
+        for (String subject : subjects) {
+            System.out.println("\nEnter your grades in " + subject);
+            double wweScore = getValidScore(scanner, "WW & E", WWE_MAX_SCORE);
+            double ptScore = getValidScore(scanner, "PT", PT_MAX_SCORE);
+            grades.put(subject, new SubjectGrades(wweScore, ptScore));
+        }
+        
+        return grades;
+    }
+    
+    private static double getValidScore(Scanner scanner, String component, int maxScore) {
+        while (true) {
+            System.out.printf("What is your %s score? (0-%d): ", component, maxScore);
+            try {
+                double score = Double.parseDouble(scanner.nextLine());
+                if (score >= 0 && score <= maxScore) {
+                    return score;
+                }
+                System.out.printf("Please enter a valid score between 0 and %d%n", maxScore);
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number");
+            }
+        }
+    }
+    
+    private static double calculateComponentGrade(double score, double maxScore) {
+        return ((score / maxScore) * 100 * WEIGHT_FACTOR) + BASE_SCORE;
+    }
+    
+    private static double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+    
+    private static void displayGradeReport(Map<String, SubjectGrades> grades, StudentInfo studentInfo) {
+        String studentInfoStr = String.format("Name: %-20s Section: %-15s", 
+                                            studentInfo.name, studentInfo.section);
+        String divider = "+-------------+--------------+----------+-------+";
+        String headers = String.format("| %-11s | %-12s | %-8s | %-5s |", 
+                                     "Subject", "WW & E Score", "PT Score", "Grade");
+        
+        System.out.println("\nGrade Report");
+        System.out.println("-----------");
+        System.out.println(studentInfoStr);
+        System.out.println(divider);
+        System.out.println(headers);
+        System.out.println(divider);
+        
+        double totalGrade = 0;
+        for (Map.Entry<String, SubjectGrades> entry : grades.entrySet()) {
+            SubjectGrades grade = entry.getValue();
+            System.out.printf("| %-11s | %-12.2f | %-8.2f | %-5.2f |%n",
+                            entry.getKey(), grade.wweGrade, grade.ptGrade, grade.finalGrade);
+            totalGrade += grade.finalGrade;
+        }
+        
+        System.out.println(divider);
+        double averageGrade = roundToTwoDecimals(totalGrade / grades.size());
+        System.out.printf("| Average Grade: %-35.2f |%n", averageGrade);
+        System.out.println(divider);
+    }
 }
